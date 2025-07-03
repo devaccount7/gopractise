@@ -37,33 +37,18 @@ func getInstance() *ParkingLotManager {
 }
 
 func NewParkingLotManager(spot map[string]*domain.ParkingSpot, paymentService *PaymentServiceImpl) *ParkingLotManager {
-
 	newInstance := getInstance()
 	newInstance.PaymentService = paymentService
 	newInstance.Slots = spot
 	return newInstance
 }
 
-func (p *ParkingLotManager) createTicket(spot *domain.ParkingSpot, vehicle *domain.Vehicle) *domain.ParkingTicket {
-	ticket := &domain.ParkingTicket{
-		Id:        ticketCounter,
-		Spot:      spot,
-		Vehicle:   vehicle,
-		CheckedIn: time.Now(),
-		Status:    "Active",
-	}
-	ticketStore[ticket.Id] = ticket
-	ticketCounter++
-	fmt.Println("Ticket created successfully:", ticket.Id)
-	return ticket
-}
-
-func (p *ParkingLotManager) AllocateParkingSpot(vehicle *domain.Vehicle) (*domain.ParkingTicket, error) {
+func (p *ParkingLotManager) AllocateParkingSpot(entryGate *domain.Entry, vehicle *domain.Vehicle) (*domain.ParkingTicket, error) {
 	for _, spot := range p.Slots {
 		if spot.IsAvailable && spot.Type == vehicle.Type {
 			spot.IsAvailable = false
 			spot.Location = "some location_coordinates_or_floor" // This should be set to a specific location
-			ticket := p.createTicket(spot,vehicle)
+			ticket := domain.NewParkingTicket(spot, vehicle, entryGate)
 			fmt.Println("Spot allocated successfully:", spot.Id)
 			return ticket, nil
 		}
